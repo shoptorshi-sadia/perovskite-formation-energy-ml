@@ -1,38 +1,101 @@
-# Machine Learning for DFT-Derived Bulk Formation Energy Prediction in Perovskites
 
-## 📌 Scientific Objective
-This project implements a machine learning pipeline to predict the **bulk formation energy** ($E_{form}$) of halide and oxide perovskites. By mapping chemical compositions to thermodynamic stability, this repository serves as a baseline materials screening tool.
+# Composition-Based Machine Learning for DFT Formation-Energy Prediction in Perovskites
 
-*(Note: This project previously targeted point-defect screening but has been pivoted to bulk perovskite formation energies to align with the selected dataset).*
+## Scientific Objective
 
-## 📂 Dataset Provenance
-- **Source:** `matbench_perovskites` (via Matminer)
-- **Size:** 18,928 authentic Density Functional Theory (DFT) calculations.
-- **Target Variable:** `e_form` (Formation energy in eV/cell).
+This project investigates the use of machine learning to predict the DFT-derived heat of formation of perovskite materials using elemental composition-based descriptors.
 
-## ⚙️ Methodology & Limitations
-Due to local hardware memory constraints (`MemoryError` during complex structural featurization), this pipeline utilizes **composition-based descriptors** rather than full structural representations. 
-- 3D `pymatgen` structures were reduced to chemical formulas.
-- Formulas were safely parsed using `pymatgen.core.Composition` to extract exact elemental fractions.
-- Models were trained to map elemental stoichiometry directly to quantum mechanical formation energies.
+The pipeline uses the Matbench perovskites dataset and compares Random Forest and XGBoost regression models to establish a baseline for composition-based formation-energy prediction.
 
-## 📊 Validation & Performance
-The models were evaluated using a 20% held-out test set with explicit column mapping (`formula`, `e_form`). To contextualize predictive power, 5-fold cross-validation and a baseline `DummyRegressor` (mean prediction) were implemented in the pipeline.
+## Dataset
 
-- **Best Performing Model:** XGBoost
-- **Test R² Score:** 0.313
-- **Test RMSE:** 0.621 eV/cell
-- **Test MAE:** 0.462 eV/cell
+- **Dataset:** `matbench_perovskites` (Matbench v0.1)
+- **Source:** Matminer dataset library
+- **Number of entries:** 18,928
+- **Original data:** DFT-calculated perovskite crystal structures
+- **Target variable:** `e_form`
+- **Target definition:** Heat of formation of the entire five-atom perovskite unit cell
+- **Target unit:** eV per five-atom cell (eV/cell)
+- **DFT method:** RPBE-GGA
 
-## 🔬 Feature Importance & Interpretability
-![Feature Importance](feature_importance.png)
+The dataset originates from the work of Castelli et al. (2012) and contains a combinatorially generated set of perovskite compositions. It is not restricted to oxide and halide perovskites.
 
-The model identifies certain elemental composition features (such as the presence of Rb, Cs, and K) as influential predictors of the formation energy within this dataset. 
+The oxygen reference state in the dataset is based on oxygen's chemical potential in water vapor rather than molecular oxygen.
 
-*Note: These associations should be interpreted cautiously; they establish predictive correlations based purely on composition rather than directly quantifying crystallographic stability metrics like the Goldschmidt tolerance factor.*
+## Methodology
 
-## 🚀 Reproducibility
-1. Install dependencies: `pip install -r requirements.txt`
-2. Fetch the data: `python fetch_dft_data.py` (Generates `perovskite_bulk_energy.csv`)
-3. Train models: `python train_model.py`
-4. Generate validation plots: `python plot_validation.py`
+Due to computational resource limitations, this project uses composition-based descriptors rather than full crystallographic structural representations.
+
+The workflow consists of:
+
+1. Retrieving the Matbench perovskites dataset using Matminer.
+2. Extracting chemical formulas from the available structures.
+3. Parsing chemical compositions using Pymatgen.
+4. Generating elemental fractional-composition descriptors.
+5. Training and comparing a Dummy Regressor, Random Forest and XGBoost.
+6. Evaluating model performance using a held-out test set and five-fold cross-validation.
+
+## Model Evaluation
+
+The models are evaluated using:
+
+- Coefficient of determination (R²)
+- Root Mean Squared Error (RMSE)
+- Mean Absolute Error (MAE)
+
+### XGBoost Test-Set Performance
+
+| Metric | Result |
+|---|---:|
+| R² | 0.313 |
+| RMSE | 0.621 eV/cell |
+| MAE | 0.462 eV/cell |
+
+These results represent an exploratory composition-based prediction baseline and are not an official Matbench leaderboard score.
+
+## Feature Importance and Interpretability
+
+Elemental composition features are examined to identify which elements contribute most to the model's predictions.
+
+Feature importance provides information about predictive associations within the trained model and should not be interpreted directly as evidence of physical causation.
+
+## Limitations
+
+- The model uses elemental composition rather than full crystal-structure descriptors.
+- Site-specific chemical environments and crystallographic information are not explicitly represented.
+- Composition-based predictions may not capture structural differences between materials with similar chemical compositions.
+- Formation energy is not equivalent to energy above the convex hull and does not independently establish thermodynamic stability against competing phases.
+
+## Reproducibility
+
+### Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+### Download the dataset
+
+```bash
+python fetch_dft_data.py
+```
+
+### Train and evaluate models
+
+```bash
+python train_model.py
+```
+
+### Generate validation plots
+
+```bash
+python plot_validation.py
+```
+
+## References
+
+1. Castelli, I. E. et al. (2012). New cubic perovskites for one- and two-photon water splitting using the computational materials repository. *Energy & Environmental Science*.
+   https://doi.org/10.1039/C2EE22341D
+
+2. Matbench / Matminer dataset documentation:
+   https://hackingmaterials.lbl.gov/matminer/dataset_summary.html
